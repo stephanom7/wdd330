@@ -42,7 +42,7 @@
       <div class="hero">
         <img
           src="/images/banner-sm.jpg"
-          srcset="images/banner-sm.jpg 500w, images/banner.jpg"
+          srcset="/images/banner-sm.jpg 500w, /images/banner.jpg"
           alt="image of a high mountain lake"
         />
         <div class="logo logo--square">
@@ -59,6 +59,14 @@
 
       <section class="products">
         <h2>Top Products</h2>
+        <div class="sort-container" style="margin-bottom: 1rem; text-align: right;">
+          <label for="sort-select">Sort by: </label>
+          <select id="sort-select">
+            <option value="name">Name (A-Z)</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+          </select>
+        </div>
         <ul class="product-list">
           <!-- Las tarjetas de los productos se cargarán dinámicamente desde main.js -->
         </ul>
