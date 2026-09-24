@@ -59,16 +59,29 @@
 
       <section class="products">
         <h2>Top Products</h2>
-        <div class="sort-container" style="margin-bottom: 1rem; text-align: right;">
-          <label for="sort-select">Sort by: </label>
-          <select id="sort-select">
-            <option value="name">Name (A-Z)</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-          </select>
+        
+        <!-- Controls Container: Search & Sort -->
+        <div class="product-controls" style="display: flex; justify: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+          <div class="search-container" style="flex: 1; min-width: 200px;">
+            <input 
+              type="text" 
+              id="search-input" 
+              placeholder="Search products..." 
+              style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem;"
+            />
+          </div>
+          <div class="sort-container">
+            <label for="sort-select">Sort by: </label>
+            <select id="sort-select" style="padding: 8px; border-radius: 4px;">
+              <option value="name">Name (A-Z)</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+            </select>
+          </div>
         </div>
+
         <ul class="product-list">
-          <!-- Las tarjetas de los productos se cargarán dinámicamente desde main.js -->
+          <!-- Product cards rendered dynamically -->
         </ul>
       </section>
     </main>
