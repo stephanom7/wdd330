@@ -6,7 +6,7 @@
     <title>Sleep Outside | Checkout</title>
     <link rel="stylesheet" href="../css/style.css" />
     <style>
-      /* Style safety net to prevent giant SVG/Image layout bugs */
+      /* Style safety net */
       img, svg {
         max-width: 100%;
         height: auto;
@@ -25,64 +25,65 @@
     <header class="divider">
       <div class="logo">
         <a href="../index.html">
-          <img src="../images/noun_Tent_2517.svg" alt="tent logo" style="width: 60px; height: 60px;" />
+          <img src="../public/images/noun_Tent_2517.svg" onerror="this.src='../images/noun_Tent_2517.svg'" alt="tent logo" style="width: 60px; height: 60px;" />
         </a>
         <a href="../index.html"> Sleep<span class="highlight">Outside</span></a>
       </div>
     </header>
-    <main class="divider" style="padding: 1rem; max-width: 600px; margin: 0 auto;">
+    <main class="divider" style="padding: 1.5rem; max-width: 600px; margin: 0 auto;">
       <h2>Review & Place your Order</h2>
-      <form id="checkout-form" style="margin-top: 1rem;">
-        <fieldset style="padding: 1rem; margin-bottom: 1rem;">
-          <legend>Shipping</legend>
-          <label style="display:block; margin-bottom: 0.5rem;">
+      
+      <form id="checkout-form" style="margin-top: 1.5rem;">
+        <fieldset style="padding: 1.2rem; margin-bottom: 1.5rem; border: 1px solid #ccc; border-radius: 6px;">
+          <legend style="padding: 0 5px; font-weight: bold;">Shipping Details</legend>
+          <label style="display:block; margin-bottom: 0.8rem;">
             First Name
-            <input type="text" name="fname" required style="width: 100%; padding: 8px;" />
+            <input type="text" name="fname" required style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;" />
           </label>
-          <label style="display:block; margin-bottom: 0.5rem;">
+          <label style="display:block; margin-bottom: 0.8rem;">
             Last Name
-            <input type="text" name="lname" required style="width: 100%; padding: 8px;" />
+            <input type="text" name="lname" required style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;" />
           </label>
-          <label style="display:block; margin-bottom: 0.5rem;">
-            Street
-            <input type="text" name="street" required style="width: 100%; padding: 8px;" />
+          <label style="display:block; margin-bottom: 0.8rem;">
+            Street Address
+            <input type="text" name="street" required style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;" />
           </label>
-          <label style="display:block; margin-bottom: 0.5rem;">
+          <label style="display:block; margin-bottom: 0.8rem;">
             City
-            <input type="text" name="city" required style="width: 100%; padding: 8px;" />
+            <input type="text" name="city" required style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;" />
           </label>
-          <label style="display:block; margin-bottom: 0.5rem;">
+          <label style="display:block; margin-bottom: 0.8rem;">
             State
-            <input type="text" name="state" required style="width: 100%; padding: 8px;" />
+            <input type="text" name="state" required style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;" />
           </label>
-          <label style="display:block; margin-bottom: 0.5rem;">
-            Zip
-            <input type="text" name="zip" required style="width: 100%; padding: 8px;" />
-          </label>
-        </fieldset>
-
-        <fieldset style="padding: 1rem; margin-bottom: 1rem;">
-          <legend>Payment</legend>
-          <label style="display:block; margin-bottom: 0.5rem;">
-            Card number
-            <input type="text" name="cardNumber" required style="width: 100%; padding: 8px;" />
-          </label>
-          <label style="display:block; margin-bottom: 0.5rem;">
-            Expiration
-            <input type="text" name="expiration" required style="width: 100%; padding: 8px;" />
-          </label>
-          <label style="display:block; margin-bottom: 0.5rem;">
-            Security Code
-            <input type="text" name="code" required style="width: 100%; padding: 8px;" />
+          <label style="display:block; margin-bottom: 0.8rem;">
+            Zip Code
+            <input type="text" name="zip" required style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;" />
           </label>
         </fieldset>
 
-        <button type="submit" id="checkoutSubmit" style="width: 100%; padding: 12px; background-color: #396e94; color: white; border: none; border-radius: 4px; font-size: 1.1rem; cursor: pointer;">
-          Checkout
+        <fieldset style="padding: 1.2rem; margin-bottom: 1.5rem; border: 1px solid #ccc; border-radius: 6px;">
+          <legend style="padding: 0 5px; font-weight: bold;">Payment Information</legend>
+          <label style="display:block; margin-bottom: 0.8rem;">
+            Card Number
+            <input type="text" name="cardNumber" required placeholder="1234123412341234" style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;" />
+          </label>
+          <label style="display:block; margin-bottom: 0.8rem;">
+            Expiration Date
+            <input type="text" name="expiration" required placeholder="MM/YY" style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;" />
+          </label>
+          <label style="display:block; margin-bottom: 0.8rem;">
+            Security Code (CVC)
+            <input type="text" name="code" required placeholder="123" style="width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;" />
+          </label>
+        </fieldset>
+
+        <button type="submit" id="checkoutSubmit" style="width: 100%; padding: 12px; background-color: #525b0f; color: white; border: none; border-radius: 4px; font-size: 1.1rem; cursor: pointer; font-weight: bold;">
+          Place Order
         </button>
       </form>
     </main>
-    <footer style="text-align: center; padding: 1rem;">
+    <footer style="text-align: center; padding: 1rem; margin-top: 2rem;">
       &copy;2025 ⛺ SleepOutside ⛺ WDD 330
     </footer>
     <script src="./checkout.js" type="module"></script>
