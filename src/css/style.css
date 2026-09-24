@@ -261,3 +261,16 @@ footer {
   font-size: var(--small-font);
   padding: 1em;
 }
+
+/* Fix header SVG and image scaling across all subpages */
+header .logo img,
+header .logo svg {
+  max-width: 60px;
+  height: 60px;
+  width: auto;
+}
+
+main svg {
+  max-width: 100%;
+  height: auto;
+}
