@@ -3,94 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RigCraft PC Builder</title>
+    <title>RigCraft - Custom PC Builder & Compatibility Checker</title>
     <link rel="stylesheet" href="./style.css">
 </head>
 <body>
     <header class="main-header">
-        <h1>🛠️ RigCraft PC Builder</h1>
-        <p>Configure your custom PC, verify power supply needs, and save your build.</p>
+        <div class="brand">
+            <h1>⚙️ RigCraft</h1>
+            <p>Custom PC Builder & Compatibility Checker</p>
+        </div>
+        <div class="header-status">
+            <span>Saved Rigs Total: <strong id="header-total">$0.00</strong></span>
+        </div>
     </header>
 
     <main class="container">
-        <!-- Component Form Section -->
-        <section class="builder-section">
-            <h2>1. Select Your Components</h2>
-            <form id="component-form" class="component-form">
+        <!-- Summary & Active Build Status -->
+        <section class="summary-card">
+            <h2>CURRENT BUILD SUMMARY</h2>
+            
+            <div id="compatibility-status" class="status-banner status-ok">
+                <span>✔ Status: Component Compatibility OK (Socket AM5 / DDR5)</span>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <small>Total Cost</small>
+                    <strong id="total-cost">$0.00</strong>
+                </div>
+                <div class="stat-box">
+                    <small>Estimated Power Draw</small>
+                    <strong id="power-draw">0W / 650W</strong>
+                </div>
+            </div>
+
+            <div id="selected-parts-list" class="parts-list">
+                <p class="empty-msg">No hardware parts added to active draft.</p>
+            </div>
+
+            <div class="action-row">
+                <button id="save-rig-btn" class="btn-primary">💾 Save Configuration</button>
+                <button id="clear-rig-btn" class="btn-danger">🗑️ Clear Draft</button>
+            </div>
+        </section>
+
+        <!-- Catalog & Interactive Add Component -->
+        <section class="catalog-card">
+            <h2>COMPONENT CATALOG & BUILDER</h2>
+            
+            <form id="add-part-form" class="part-form">
                 <div class="form-group">
-                    <label for="comp-type">Component Category:</label>
-                    <select id="comp-type" required>
-                        <option value="Processor (CPU)">Processor (CPU)</option>
-                        <option value="Graphics Card (GPU)">Graphics Card (GPU)</option>
-                        <option value="Memory (RAM)">Memory (RAM)</option>
-                        <option value="Storage (SSD/HDD)">Storage (SSD/HDD)</option>
-                        <option value="Power Supply (PSU)">Power Supply (PSU)</option>
+                    <label for="part-category">Category:</label>
+                    <select id="part-category" required>
+                        <option value="CPU">CPU (Processor)</option>
+                        <option value="GPU">GPU (Graphics Card)</option>
+                        <option value="RAM">RAM Memory</option>
                         <option value="Motherboard">Motherboard</option>
+                        <option value="PSU">PSU (Power Supply)</option>
+                        <option value="Storage">Storage</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="comp-name">Model Name:</label>
-                    <input type="text" id="comp-name" placeholder="e.g. AMD Ryzen 5 5600G" required>
+                    <label for="part-name">Model Name:</label>
+                    <input type="text" id="part-name" placeholder="e.g. AMD Ryzen 5 7600X" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="comp-price">Price ($ USD):</label>
-                    <input type="number" id="comp-price" step="0.01" placeholder="150.00" required>
+                    <label for="part-socket">Socket / Type:</label>
+                    <input type="text" id="part-socket" placeholder="e.g. AM5, LGA1700, DDR5" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="comp-wattage">Power Draw (Watts):</label>
-                    <input type="number" id="comp-wattage" placeholder="65" required>
+                    <label for="part-price">Price ($):</label>
+                    <input type="number" id="part-price" step="0.01" placeholder="229.00" required>
                 </div>
 
-                <button type="submit" class="btn-primary">➕ Add Component</button>
+                <div class="form-group">
+                    <label for="part-tdp">TDP (Watts):</label>
+                    <input type="number" id="part-tdp" placeholder="105" required>
+                </div>
+
+                <button type="submit" class="btn-primary full-width">Add Component to Rig</button>
             </form>
         </section>
 
-        <!-- Summary & Storage Section -->
-        <section class="summary-section">
-            <h2>2. PC Build Summary</h2>
-            
-            <div class="stats-bar">
-                <div class="stat-card">
-                    <h3>Total Cost</h3>
-                    <p id="total-price">$0.00</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Estimated Consumption</h3>
-                    <p id="total-wattage">0 W</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Recommended PSU</h3>
-                    <p id="recommended-psu">400 W</p>
-                </div>
+        <!-- Game System Requirements Benchmarking -->
+        <section class="game-benchmarks-card">
+            <h2>GAME REQUIREMENTS BENCHMARK (RAWG API)</h2>
+            <div class="search-bar">
+                <input type="text" id="game-query" placeholder="Search game (e.g. Cyberpunk 2077, GTA VI)...">
+                <button id="search-game-btn" class="btn-secondary">Search Specs</button>
             </div>
-
-            <div id="build-list" class="build-list">
-                <p class="empty-msg">No components added to your build yet.</p>
-            </div>
-
-            <div class="action-buttons">
-                <button id="save-build-btn" class="btn-success">💾 Save Build to LocalStorage</button>
-                <button id="clear-build-btn" class="btn-danger">🗑️ Clear Build</button>
-            </div>
-        </section>
-
-        <!-- External API Section (RAWG API) -->
-        <section class="api-section">
-            <h2>3. Gaming Benchmarks (RAWG API)</h2>
-            <p>Search games to check target performance requirements for your build:</p>
-            <div class="search-box">
-                <input type="text" id="game-search" placeholder="e.g. Cyberpunk 2077, GTA VI, FC 24...">
-                <button id="search-game-btn" class="btn-secondary">🔍 Search Game</button>
-            </div>
-            <div id="games-results" class="games-grid"></div>
+            <div id="game-results-container" class="game-results-grid"></div>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2026 RigCraft PC Builder - WDD 330 Final Project</p>
+        <p>&copy; 2026 RigCraft PC Builder | WDD 330 Final Project</p>
     </footer>
 
     <script type="module" src="./app.js"></script>

@@ -1,161 +1,163 @@
-// RAWG Public API Key
 const RAWG_API_KEY = "c5322550a26d48e0a27f7db7962d7729";
 
-// Application State
-let build = [];
+// State
+let activeDraft = [];
 
-// DOM Elements
-const form = document.getElementById("component-form");
-const buildList = document.getElementById("build-list");
-const totalPriceEl = document.getElementById("total-price");
-const totalWattageEl = document.getElementById("total-wattage");
-const recommendedPsuEl = document.getElementById("recommended-psu");
-const saveBtn = document.getElementById("save-build-btn");
-const clearBtn = document.getElementById("clear-build-btn");
-const gameSearchInput = document.getElementById("game-search");
+// DOM References
+const addPartForm = document.getElementById("add-part-form");
+const selectedPartsList = document.getElementById("selected-parts-list");
+const totalCostEl = document.getElementById("total-cost");
+const powerDrawEl = document.getElementById("power-draw");
+const headerTotalEl = document.getElementById("header-total");
+const compatibilityStatusEl = document.getElementById("compatibility-status");
+const saveRigBtn = document.getElementById("save-rig-btn");
+const clearRigBtn = document.getElementById("clear-rig-btn");
+const gameQueryInput = document.getElementById("game-query");
 const searchGameBtn = document.getElementById("search-game-btn");
-const gamesResults = document.getElementById("games-results");
+const gameResultsContainer = document.getElementById("game-results-container");
 
-// Initialize Application on DOM Load
 document.addEventListener("DOMContentLoaded", () => {
-    loadBuildFromLocalStorage();
-    renderBuild();
-    fetchDefaultGames();
+    loadDraftFromLocalStorage();
+    renderActiveDraft();
+    fetchDefaultGame();
 });
 
-// Event Listener: Add Component
-form.addEventListener("submit", (e) => {
+// Add Component Event
+addPartForm.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    const type = document.getElementById("comp-type").value;
-    const name = document.getElementById("comp-name").value;
-    const price = parseFloat(document.getElementById("comp-price").value);
-    const wattage = parseInt(document.getElementById("comp-wattage").value);
+    const category = document.getElementById("part-category").value;
+    const name = document.getElementById("part-name").value;
+    const socket = document.getElementById("part-socket").value;
+    const price = parseFloat(document.getElementById("part-price").value);
+    const tdp = parseInt(document.getElementById("part-tdp").value);
 
-    const item = {
+    const newPart = {
         id: Date.now(),
-        type,
+        category,
         name,
+        socket,
         price,
-        wattage
+        tdp
     };
 
-    build.push(item);
-    renderBuild();
-    form.reset();
+    activeDraft.push(newPart);
+    renderActiveDraft();
+    addPartForm.reset();
 });
 
-// Render Component List & Recalculate Statistics
-function renderBuild() {
-    buildList.innerHTML = "";
+function renderActiveDraft() {
+    selectedPartsList.innerHTML = "";
 
-    if (build.length === 0) {
-        buildList.innerHTML = `<p class="empty-msg">No components added to your build yet.</p>`;
-        totalPriceEl.textContent = "$0.00";
-        totalWattageEl.textContent = "0 W";
-        recommendedPsuEl.textContent = "400 W";
+    if (activeDraft.length === 0) {
+        selectedPartsList.innerHTML = `<p class="empty-msg">No hardware parts added to active draft.</p>`;
+        totalCostEl.textContent = "$0.00";
+        powerDrawEl.textContent = "0W / 650W";
+        headerTotalEl.textContent = "$0.00";
         return;
     }
 
-    let totalPrice = 0;
-    let totalWattage = 0;
+    let totalCost = 0;
+    let totalTdp = 0;
 
-    build.forEach((item) => {
-        totalPrice += item.price;
-        totalWattage += item.wattage;
+    activeDraft.forEach((part) => {
+        totalCost += part.price;
+        totalTdp += part.tdp;
 
-        const card = document.createElement("div");
-        card.className = "item-card";
-        card.innerHTML = `
-            <div class="item-info">
-                <strong>${item.name}</strong>
-                <span>${item.type} | Power Draw: ${item.wattage}W</span>
+        const item = document.createElement("div");
+        item.className = "part-item";
+        item.innerHTML = `
+            <div>
+                <strong>[${part.category}] ${part.name}</strong>
+                <br><small style="color:#A0AEC0;">Type: ${part.socket} | Power: ${part.tdp}W</small>
             </div>
             <div>
-                <strong>$${item.price.toFixed(2)}</strong>
-                <button onclick="removeComponent(${item.id})" class="btn-danger" style="margin-left: 10px; padding: 4px 8px;">✕</button>
+                <strong>$${part.price.toFixed(2)}</strong>
+                <button onclick="removePart(${part.id})" class="btn-danger" style="margin-left: 8px; padding: 2px 6px;">✕</button>
             </div>
         `;
-        buildList.appendChild(card);
+        selectedPartsList.appendChild(item);
     });
 
-    totalPriceEl.textContent = `$${totalPrice.toFixed(2)}`;
-    totalWattageEl.textContent = `${totalWattage} W`;
-    
-    // Recommended PSU Calculation (Power Draw + 30% overhead)
-    const recommendedPsu = Math.max(400, Math.ceil((totalWattage * 1.3) / 50) * 50);
-    recommendedPsuEl.textContent = `${recommendedPsu} W`;
+    totalCostEl.textContent = `$${totalCost.toFixed(2)}`;
+    headerTotalEl.textContent = `$${totalCost.toFixed(2)}`;
+    powerDrawEl.textContent = `${totalTdp}W / 650W`;
+
+    // Simple Compatibility Check Logic
+    if (totalTdp > 650) {
+        compatibilityStatusEl.className = "status-banner status-warn";
+        compatibilityStatusEl.textContent = "⚠️ Warning: Total TDP exceeds recommended 650W PSU rating!";
+    } else {
+        compatibilityStatusEl.className = "status-banner status-ok";
+        compatibilityStatusEl.textContent = "✔ Status: Component Compatibility & Power Draw OK";
+    }
 }
 
-// Remove Single Component
-window.removeComponent = function(id) {
-    build = build.filter((item) => item.id !== id);
-    renderBuild();
+window.removePart = function(id) {
+    activeDraft = activeDraft.filter((part) => part.id !== id);
+    renderActiveDraft();
 };
 
-// Event Listener: Save to LocalStorage
-saveBtn.addEventListener("click", () => {
-    localStorage.setItem("rigcraft_build", JSON.stringify(build));
-    alert("Configuration successfully saved to LocalStorage!");
+saveRigBtn.addEventListener("click", () => {
+    localStorage.setItem("rigcraft_active_draft", JSON.stringify(activeDraft));
+    alert("Draft saved to LocalStorage successfully!");
 });
 
-// Load Data from LocalStorage
-function loadBuildFromLocalStorage() {
-    const saved = localStorage.getItem("rigcraft_build");
+function loadDraftFromLocalStorage() {
+    const saved = localStorage.getItem("rigcraft_active_draft");
     if (saved) {
         try {
-            build = JSON.parse(saved);
-        } catch (err) {
-            console.error("Failed to load from LocalStorage", err);
+            activeDraft = JSON.parse(saved);
+        } catch (e) {
+            console.error("Error parsing LocalStorage data", e);
         }
     }
 }
 
-// Event Listener: Clear Build
-clearBtn.addEventListener("click", () => {
-    build = [];
-    localStorage.removeItem("rigcraft_build");
-    renderBuild();
+clearRigBtn.addEventListener("click", () => {
+    activeDraft = [];
+    localStorage.removeItem("rigcraft_active_draft");
+    renderActiveDraft();
 });
 
-// Fetch Data from External RAWG API
-async function fetchGames(query = "action") {
-    gamesResults.innerHTML = "<p>Loading data from RAWG API...</p>";
+// RAWG API Game Requirements Search
+async function searchGames(query) {
+    gameResultsContainer.innerHTML = "<p>Fetching game benchmarks...</p>";
     try {
-        const response = await fetch(`https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(query)}&page_size=4`);
-        const data = await response.json();
-        
-        gamesResults.innerHTML = "";
+        const res = await fetch(`https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(query)}&page_size=3`);
+        const data = await res.json();
+
+        gameResultsContainer.innerHTML = "";
         if (!data.results || data.results.length === 0) {
-            gamesResults.innerHTML = "<p>No games found matching your search.</p>";
+            gameResultsContainer.innerHTML = "<p>No games found.</p>";
             return;
         }
 
         data.results.forEach((game) => {
-            const gameCard = document.createElement("div");
-            gameCard.className = "game-card";
-            gameCard.innerHTML = `
-                <img src="${game.background_image || 'https://via.placeholder.com/200x120'}" alt="${game.name}">
-                <div class="game-card-body">
-                    <h4>${game.name}</h4>
-                    <p style="font-size: 0.75rem; color: #94a3b8;">Rating: ⭐ ${game.rating} / 5</p>
+            const card = document.createElement("div");
+            card.className = "game-card";
+            card.innerHTML = `
+                <img src="${game.background_image || 'https://via.placeholder.com/200x110'}" alt="${game.name}">
+                <div class="game-card-info">
+                    <strong>${game.name}</strong>
+                    <br><small style="color:#A0AEC0;">Rating: ⭐ ${game.rating}</small>
                 </div>
             `;
-            gamesResults.appendChild(gameCard);
+            gameResultsContainer.appendChild(card);
         });
-    } catch (error) {
-        console.error("Error connecting to API:", error);
-        gamesResults.innerHTML = "<p>Error loading game data.</p>";
+    } catch (err) {
+        console.error("API Fetch Error:", err);
+        gameResultsContainer.innerHTML = "<p>Error loading game API data.</p>";
     }
 }
 
-function fetchDefaultGames() {
-    fetchGames("cyberpunk");
+function fetchDefaultGame() {
+    searchGames("Cyberpunk 2077");
 }
 
 searchGameBtn.addEventListener("click", () => {
-    const query = gameSearchInput.value.trim();
+    const query = gameQueryInput.value.trim();
     if (query) {
-        fetchGames(query);
+        searchGames(query);
     }
 });
