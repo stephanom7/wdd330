@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadDraftFromLocalStorage();
     renderActiveDraft();
     fetchCurrencyRates(); // API 2: Currency Exchange
-    fetchGames("pc"); // API 1: Games Database
+    fetchMarketplaceItems(); // API 1: Live Public Marketplace API
 });
 
 // --- LOCAL STORAGE & COMPONENT BUILDER ---
@@ -144,44 +144,50 @@ function formatCurrency(amountInUSD) {
     return `${symbols[currentCurrency] || "$"}${converted.toFixed(2)}`;
 }
 
-// --- API 1: LIVE GAME BENCHMARK DATABASE API (100% Dynamic & Public) ---
-async function fetchGames(category = "shooter") {
-    techResultsContainer.innerHTML = "<p>Fetching live game benchmarks from API...</p>";
+// --- API 1: LIVE FAKESTORE MARKETPLACE API (100% Free, Public & Fast) ---
+async function fetchMarketplaceItems(searchQuery = "") {
+    techResultsContainer.innerHTML = "<p>Connecting to Live Market API...</p>";
     try {
-        const res = await fetch(`https://corsproxy.io/?https://www.freetogame.com/api/games?category=${encodeURIComponent(category)}`);
+        const res = await fetch("https://fakestoreapi.com/products/category/electronics");
         const data = await res.json();
 
         techResultsContainer.innerHTML = "";
 
-        if (!data || !Array.isArray(data) || data.length === 0) {
-            techResultsContainer.innerHTML = "<p>No game benchmark specifications found for this category.</p>";
+        if (!data || data.length === 0) {
+            techResultsContainer.innerHTML = "<p>No products returned from API.</p>";
             return;
         }
 
-        // Display up to 3 dynamic cards returned directly from the live API response
-        const gamesToDisplay = data.slice(0, 3);
-        gamesToDisplay.forEach((game) => {
+        // Filter results dynamically if search query exists
+        let filtered = data;
+        if (searchQuery) {
+            filtered = data.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()));
+        }
+
+        if (filtered.length === 0) {
+            techResultsContainer.innerHTML = "<p>No tech items match your query. Try searching 'drive', 'monitor', or 'hard'.</p>";
+            return;
+        }
+
+        filtered.slice(0, 3).forEach((item) => {
             const card = document.createElement("div");
             card.className = "game-card";
             card.innerHTML = `
-                <img src="${game.thumbnail}" alt="${game.title}">
+                <img src="${item.image}" alt="${item.title}" style="height:100px; object-fit:contain; background:#fff; padding:5px;">
                 <div class="game-card-info">
-                    <strong>${game.title}</strong>
-                    <br><small style="color:#A0AEC0;">Genre: ${game.genre} | Platform: ${game.platform}</small>
+                    <strong style="font-size:0.8rem;">${item.title.substring(0, 30)}...</strong>
+                    <br><span style="color:#F0A868; font-weight:bold;">${formatCurrency(item.price)}</span>
                 </div>
             `;
             techResultsContainer.appendChild(card);
         });
     } catch (err) {
         console.error("API Fetch Error:", err);
-        techResultsContainer.innerHTML = "<p>Error connecting to live Game API.</p>";
+        techResultsContainer.innerHTML = "<p>Error connecting to Marketplace API.</p>";
     }
 }
 
 searchTechBtn.addEventListener("click", () => {
-    const query = techQueryInput.value.trim().toLowerCase();
-    if (query) {
-        // Fetches real games dynamically based on category/genre input (e.g. shooter, racing, strategy, action)
-        fetchGames(query);
-    }
+    const query = techQueryInput.value.trim();
+    fetchMarketplaceItems(query);
 });
