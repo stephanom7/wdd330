@@ -3,13 +3,6 @@ let activeDraft = [];
 let exchangeRates = { USD: 1, EUR: 0.92, GBP: 0.78 };
 let currentCurrency = "USD";
 
-// Fallback Game Requirements Data (Ensures it NEVER fails on screen)
-const fallbackGames = [
-    { name: "Cyberpunk 2077", rating: 4.5, image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400" },
-    { name: "Grand Theft Auto V", rating: 4.8, image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400" },
-    { name: "EA Sports FC 24", rating: 4.2, image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400" }
-];
-
 // DOM References
 const addPartForm = document.getElementById("add-part-form");
 const selectedPartsList = document.getElementById("selected-parts-list");
@@ -26,8 +19,8 @@ const techResultsContainer = document.getElementById("tech-results-container");
 document.addEventListener("DOMContentLoaded", () => {
     loadDraftFromLocalStorage();
     renderActiveDraft();
-    fetchCurrencyRates(); // API 2
-    fetchGames("cyberpunk"); // API 1
+    fetchCurrencyRates(); // API 2: Currency Exchange
+    fetchGames("pc"); // API 1: Games Database
 });
 
 // --- LOCAL STORAGE & COMPONENT BUILDER ---
@@ -135,7 +128,7 @@ async function fetchCurrencyRates() {
             exchangeRates = data.rates;
         }
     } catch (err) {
-        console.warn("Using fallback exchange rates:", err);
+        console.warn("Using default exchange rates:", err);
     }
 }
 
@@ -151,47 +144,44 @@ function formatCurrency(amountInUSD) {
     return `${symbols[currentCurrency] || "$"}${converted.toFixed(2)}`;
 }
 
-// --- API 1: GAMES API WITH GUARANTEED FALLBACK ---
-async function fetchGames(query) {
-    techResultsContainer.innerHTML = "<p>Fetching benchmarks...</p>";
+// --- API 1: LIVE GAME BENCHMARK DATABASE API (100% Dynamic & Public) ---
+async function fetchGames(category = "shooter") {
+    techResultsContainer.innerHTML = "<p>Fetching live game benchmarks from API...</p>";
     try {
-        const res = await fetch(`https://api.rawg.io/api/games?key=c5322550a26d48e0a27f7db7962d7729&search=${encodeURIComponent(query)}&page_size=3`);
+        const res = await fetch(`https://corsproxy.io/?https://www.freetogame.com/api/games?category=${encodeURIComponent(category)}`);
         const data = await res.json();
 
-        if (data.results && data.results.length > 0) {
-            renderGameCards(data.results.map(g => ({
-                name: g.name,
-                rating: g.rating,
-                image: g.background_image || 'https://via.placeholder.com/200x110'
-            })));
+        techResultsContainer.innerHTML = "";
+
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            techResultsContainer.innerHTML = "<p>No game benchmark specifications found for this category.</p>";
             return;
         }
-    } catch (err) {
-        console.warn("API limit or CORS issue, rendering benchmark fallbacks:", err);
-    }
-    // Render fallbacks if search returns empty or fails
-    renderGameCards(fallbackGames);
-}
 
-function renderGameCards(games) {
-    techResultsContainer.innerHTML = "";
-    games.forEach((game) => {
-        const card = document.createElement("div");
-        card.className = "game-card";
-        card.innerHTML = `
-            <img src="${game.image}" alt="${game.name}">
-            <div class="game-card-info">
-                <strong>${game.name}</strong>
-                <br><small style="color:#A0AEC0;">Target Rating: ⭐ ${game.rating}</small>
-            </div>
-        `;
-        techResultsContainer.appendChild(card);
-    });
+        // Display up to 3 dynamic cards returned directly from the live API response
+        const gamesToDisplay = data.slice(0, 3);
+        gamesToDisplay.forEach((game) => {
+            const card = document.createElement("div");
+            card.className = "game-card";
+            card.innerHTML = `
+                <img src="${game.thumbnail}" alt="${game.title}">
+                <div class="game-card-info">
+                    <strong>${game.title}</strong>
+                    <br><small style="color:#A0AEC0;">Genre: ${game.genre} | Platform: ${game.platform}</small>
+                </div>
+            `;
+            techResultsContainer.appendChild(card);
+        });
+    } catch (err) {
+        console.error("API Fetch Error:", err);
+        techResultsContainer.innerHTML = "<p>Error connecting to live Game API.</p>";
+    }
 }
 
 searchTechBtn.addEventListener("click", () => {
-    const query = techQueryInput.value.trim();
+    const query = techQueryInput.value.trim().toLowerCase();
     if (query) {
+        // Fetches real games dynamically based on category/genre input (e.g. shooter, racing, strategy, action)
         fetchGames(query);
     }
 });
