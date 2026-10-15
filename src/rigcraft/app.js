@@ -1,28 +1,29 @@
-const RAWG_API_KEY = "c5322550a26d48e0a27f7db7962d7729";
-
-// State
+// State variables
 let activeDraft = [];
+let exchangeRates = { USD: 1, EUR: 0.92, GBP: 0.78 };
+let currentCurrency = "USD";
 
 // DOM References
 const addPartForm = document.getElementById("add-part-form");
 const selectedPartsList = document.getElementById("selected-parts-list");
 const totalCostEl = document.getElementById("total-cost");
 const powerDrawEl = document.getElementById("power-draw");
-const headerTotalEl = document.getElementById("header-total");
 const compatibilityStatusEl = document.getElementById("compatibility-status");
 const saveRigBtn = document.getElementById("save-rig-btn");
 const clearRigBtn = document.getElementById("clear-rig-btn");
-const gameQueryInput = document.getElementById("game-query");
-const searchGameBtn = document.getElementById("search-game-btn");
-const gameResultsContainer = document.getElementById("game-results-container");
+const currencySelect = document.getElementById("currency-select");
+const techQueryInput = document.getElementById("tech-query");
+const searchTechBtn = document.getElementById("search-tech-btn");
+const techResultsContainer = document.getElementById("tech-results-container");
 
 document.addEventListener("DOMContentLoaded", () => {
     loadDraftFromLocalStorage();
     renderActiveDraft();
-    fetchDefaultGame();
+    fetchCurrencyRates(); // API 2
+    fetchTechProducts("laptops"); // API 1
 });
 
-// Add Component Event
+// --- LOCAL STORAGE & DRAFT MANAGEMENT ---
 addPartForm.addEventListener("submit", (e) => {
     e.preventDefault();
 
@@ -51,17 +52,16 @@ function renderActiveDraft() {
 
     if (activeDraft.length === 0) {
         selectedPartsList.innerHTML = `<p class="empty-msg">No hardware parts added to active draft.</p>`;
-        totalCostEl.textContent = "$0.00";
+        totalCostEl.textContent = formatCurrency(0);
         powerDrawEl.textContent = "0W / 650W";
-        headerTotalEl.textContent = "$0.00";
         return;
     }
 
-    let totalCost = 0;
+    let totalCostUSD = 0;
     let totalTdp = 0;
 
     activeDraft.forEach((part) => {
-        totalCost += part.price;
+        totalCostUSD += part.price;
         totalTdp += part.tdp;
 
         const item = document.createElement("div");
@@ -72,18 +72,17 @@ function renderActiveDraft() {
                 <br><small style="color:#A0AEC0;">Type: ${part.socket} | Power: ${part.tdp}W</small>
             </div>
             <div>
-                <strong>$${part.price.toFixed(2)}</strong>
+                <strong>${formatCurrency(part.price)}</strong>
                 <button onclick="removePart(${part.id})" class="btn-danger" style="margin-left: 8px; padding: 2px 6px;">✕</button>
             </div>
         `;
         selectedPartsList.appendChild(item);
     });
 
-    totalCostEl.textContent = `$${totalCost.toFixed(2)}`;
-    headerTotalEl.textContent = `$${totalCost.toFixed(2)}`;
+    totalCostEl.textContent = formatCurrency(totalCostUSD);
     powerDrawEl.textContent = `${totalTdp}W / 650W`;
 
-    // Simple Compatibility Check Logic
+    // Compatibility validation
     if (totalTdp > 650) {
         compatibilityStatusEl.className = "status-banner status-warn";
         compatibilityStatusEl.textContent = "⚠️ Warning: Total TDP exceeds recommended 650W PSU rating!";
@@ -120,44 +119,66 @@ clearRigBtn.addEventListener("click", () => {
     renderActiveDraft();
 });
 
-// RAWG API Game Requirements Search
-async function searchGames(query) {
-    gameResultsContainer.innerHTML = "<p>Fetching game benchmarks...</p>";
+// --- API 2: EXCHANGERATE API (CURRENCY CONVERTER) ---
+async function fetchCurrencyRates() {
     try {
-        const res = await fetch(`https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(query)}&page_size=3`);
+        const res = await fetch("https://open.er-api.com/v6/latest/USD");
         const data = await res.json();
-
-        gameResultsContainer.innerHTML = "";
-        if (!data.results || data.results.length === 0) {
-            gameResultsContainer.innerHTML = "<p>No games found.</p>";
-            return;
+        if (data && data.rates) {
+            exchangeRates = data.rates;
         }
-
-        data.results.forEach((game) => {
-            const card = document.createElement("div");
-            card.className = "game-card";
-            card.innerHTML = `
-                <img src="${game.background_image || 'https://via.placeholder.com/200x110'}" alt="${game.name}">
-                <div class="game-card-info">
-                    <strong>${game.name}</strong>
-                    <br><small style="color:#A0AEC0;">Rating: ⭐ ${game.rating}</small>
-                </div>
-            `;
-            gameResultsContainer.appendChild(card);
-        });
     } catch (err) {
-        console.error("API Fetch Error:", err);
-        gameResultsContainer.innerHTML = "<p>Error loading game API data.</p>";
+        console.warn("Using fallback exchange rates:", err);
     }
 }
 
-function fetchDefaultGame() {
-    searchGames("Cyberpunk 2077");
+currencySelect.addEventListener("change", (e) => {
+    currentCurrency = e.target.value;
+    renderActiveDraft();
+});
+
+function formatCurrency(amountInUSD) {
+    const rate = exchangeRates[currentCurrency] || 1;
+    const converted = amountInUSD * rate;
+    const symbols = { USD: "$", EUR: "€", GBP: "£" };
+    return `${symbols[currentCurrency] || "$"}${converted.toFixed(2)}`;
 }
 
-searchGameBtn.addEventListener("click", () => {
-    const query = gameQueryInput.value.trim();
+// --- API 1: DUMMYJSON TECH PRODUCTS API ---
+async function fetchTechProducts(query = "laptops") {
+    techResultsContainer.innerHTML = "<p>Loading hardware market data...</p>";
+    try {
+        const res = await fetch(`https://dummyjson.com/products/search?q=${encodeURIComponent(query)}&limit=4`);
+        const data = await res.json();
+
+        techResultsContainer.innerHTML = "";
+        if (!data.products || data.products.length === 0) {
+            techResultsContainer.innerHTML = "<p>No tech products found.</p>";
+            return;
+        }
+
+        data.products.forEach((product) => {
+            const card = document.createElement("div");
+            card.className = "game-card";
+            card.innerHTML = `
+                <img src="${product.thumbnail}" alt="${product.title}">
+                <div class="game-card-info">
+                    <strong>${product.title}</strong>
+                    <br><small style="color:#A0AEC0;">Brand: ${product.brand || 'Generic'}</small>
+                    <br><span style="color:#F0A868; font-weight:bold;">${formatCurrency(product.price)}</span>
+                </div>
+            `;
+            techResultsContainer.appendChild(card);
+        });
+    } catch (err) {
+        console.error("Tech API Fetch Error:", err);
+        techResultsContainer.innerHTML = "<p>Error loading market API data.</p>";
+    }
+}
+
+searchTechBtn.addEventListener("click", () => {
+    const query = techQueryInput.value.trim();
     if (query) {
-        searchGames(query);
+        fetchTechProducts(query);
     }
 });
